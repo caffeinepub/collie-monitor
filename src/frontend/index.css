@@ -1,0 +1,121 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --radius: 0.375rem;
+    /* Dark navy blue background #0a1628 - L: 13% C: 0.04 H: 235 */
+    --background: 0.13 0.04 235;
+    --foreground: 0.98 0.01 235;
+    /* Slightly lighter card background */
+    --card: 0.16 0.04 235;
+    --card-foreground: 0.98 0.01 235;
+    --popover: 0.14 0.04 235;
+    --popover-foreground: 0.98 0.01 235;
+    /* Cyan accent #00e5ff - L: 77% C: 0.15 H: 195 */
+    --primary: 0.77 0.15 195;
+    --primary-foreground: 0.13 0.04 235;
+    /* Secondary darker blue */
+    --secondary: 0.22 0.05 235;
+    --secondary-foreground: 0.98 0.01 235;
+    /* Muted text */
+    --muted: 0.25 0.04 235;
+    --muted-foreground: 0.65 0.02 235;
+    /* Cyan accent variant */
+    --accent: 0.77 0.15 195;
+    --accent-foreground: 0.13 0.04 235;
+    /* Green for success/wins */
+    --success: 0.65 0.18 145;
+    --success-foreground: 0.13 0.04 235;
+    /* Red for destructive/losses */
+    --destructive: 0.55 0.22 25;
+    --destructive-foreground: 0.98 0.01 235;
+    /* Borders and inputs */
+    --border: 0.30 0.05 235;
+    --input: 0.25 0.05 235;
+    --ring: 0.77 0.15 195;
+    /* Chart colors - cyan/teal variants */
+    --chart-1: 0.77 0.15 195;
+    --chart-2: 0.65 0.12 180;
+    --chart-3: 0.55 0.10 210;
+    --chart-4: 0.85 0.18 185;
+    --chart-5: 0.70 0.14 200;
+    /* Sidebar - use card background */
+    --sidebar: 0.14 0.04 235;
+    --sidebar-foreground: 0.98 0.01 235;
+    --sidebar-primary: 0.77 0.15 195;
+    --sidebar-primary-foreground: 0.13 0.04 235;
+    --sidebar-accent: 0.22 0.05 235;
+    --sidebar-accent-foreground: 0.98 0.01 235;
+    --sidebar-border: 0.25 0.05 235;
+    --sidebar-ring: 0.77 0.15 195;
+  }
+
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+
+  /* Monospace for numbers and prices */
+  .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* Decorative candlestick pattern in background */
+  .candlestick-bg {
+    background-image: 
+      linear-gradient(to bottom, transparent 0%, oklch(var(--background)) 100%),
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 40px,
+        oklch(0.18 0.04 235 / 0.3) 40px,
+        oklch(0.18 0.04 235 / 0.3) 41px
+      );
+  }
+
+  /* Cyan glow effect on hover for cards */
+  .card-glow {
+    transition: all 0.3s ease;
+  }
+
+  .card-glow:hover {
+    box-shadow: 0 0 20px oklch(0.77 0.15 195 / 0.3);
+    border-color: oklch(var(--primary));
+  }
+
+  /* Gradient header */
+  .gradient-header {
+    background: linear-gradient(
+      135deg,
+      oklch(0.16 0.04 235) 0%,
+      oklch(0.22 0.05 235) 50%,
+      oklch(0.16 0.04 235) 100%
+    );
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: oklch(var(--card));
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: oklch(var(--muted));
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: oklch(var(--primary));
+  }
+}
