@@ -1,6 +1,7 @@
 import { RouterProvider, createRouter, createRoute, createRootRoute, Outlet } from "@tanstack/react-router";
 import { useInitializeApp } from "@/hooks/useInitializeApp";
 import { Layout } from "@/components/Layout";
+import { InstallPrompt } from "@/components/InstallPrompt";
 import { MarketsOverview } from "@/pages/MarketsOverview";
 import { CategoriesDashboard } from "@/pages/CategoriesDashboard";
 import { CategoryDetail } from "@/pages/CategoryDetail";
@@ -14,6 +15,7 @@ function RootComponent() {
   
   return (
     <>
+      <InstallPrompt />
       <Layout>
         <Outlet />
       </Layout>

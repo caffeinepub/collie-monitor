@@ -1,11 +1,11 @@
 import Array "mo:core/Array";
 import Runtime "mo:core/Runtime";
 import Float "mo:core/Float";
-import Migration "migration";
+
 import Nat "mo:core/Nat";
 import Order "mo:core/Order";
 
-(with migration = Migration.run)
+
 actor {
   type TradeDirection = {
     #LONG;
