@@ -1,11 +1,13 @@
-const CACHE_NAME = "collie-monitor-v1";
+const CACHE_NAME = "collie-monitor-v2";
 
 const CRITICAL_ASSETS = [
   "/",
   "/index.html",
-  "/src/main.tsx",
+  "/manifest.json",
   "/assets/generated/icon-192.dim_192x192.png",
   "/assets/generated/icon-512.dim_512x512.png",
+  "/assets/generated/icon-maskable-512.dim_512x512.png",
+  "/assets/generated/apple-touch-icon.dim_180x180.png",
 ];
 
 // Install event: precache critical assets
@@ -33,14 +35,17 @@ self.addEventListener("activate", (event) => {
           }
         })
       );
-    })
+    }).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
 // Fetch event: implement cache strategies
 self.addEventListener("fetch", (event) => {
   const { request } = event;
+
+  // Skip non-GET requests
+  if (request.method !== "GET") return;
+
   const url = new URL(request.url);
 
   // Skip cross-origin requests and API calls to Binance
@@ -49,9 +54,7 @@ self.addEventListener("fetch", (event) => {
       // Network-first for Binance API calls
       event.respondWith(
         fetch(request)
-          .then((response) => {
-            return response;
-          })
+          .then((response) => response)
           .catch(() => {
             return new Response(
               JSON.stringify({ error: "Network unavailable" }),
@@ -75,9 +78,7 @@ self.addEventListener("fetch", (event) => {
   ) {
     event.respondWith(
       caches.match(request).then((cachedResponse) => {
-        if (cachedResponse) {
-          return cachedResponse;
-        }
+        if (cachedResponse) return cachedResponse;
         return fetch(request).then((response) => {
           if (response && response.status === 200) {
             const responseToCache = response.clone();
@@ -106,10 +107,7 @@ self.addEventListener("fetch", (event) => {
       })
       .catch(() => {
         return caches.match(request).then((cachedResponse) => {
-          if (cachedResponse) {
-            return cachedResponse;
-          }
-          // Return offline page for navigation requests
+          if (cachedResponse) return cachedResponse;
           if (request.destination === "document") {
             return caches.match("/");
           }
