@@ -1,84 +1,45 @@
 # Collie Monitor
 
 ## Current State
-
-O Collie Monitor é um simulador de paper trading funcional com 6 telas principais (Markets Overview, Categories Dashboard, Category Detail, Asset Detail, Strategy Modules, Trade History), integração em tempo real com a Binance API, e tema visual azul marinho (#0a1628) + ciano (#00e5ff).
-
-Atualmente o aplicativo funciona apenas como webapp tradicional, sem capacidades de PWA ou instalação nativa.
+A app tem uma aba de Markets Overview com tabela de todos os pares USD-M perpétuos da Binance, exibindo preço, variação 24h, funding rate, volume e score de momentum. Os dados são atualizados a cada 60 segundos via React Query. Não existe scanner de sinais nem análise de RSI multi-timeframe.
 
 ## Requested Changes (Diff)
 
 ### Add
-- PWA manifest.json com identidade do app, ícones e configurações de instalação
-- Conjunto completo de ícones PWA (192x192, 512x512, maskable icons)
-- Service worker para suporte offline e cache estratégico
-- Componente de UI para prompt de instalação (install banner)
-- Meta tags para otimização mobile (theme-color, apple-touch-icon, etc)
-- Splash screens para iOS
+- Aba "Signal Scanner" dentro da página MarketsOverview (tabs: All Markets | Signal Scanner)
+- Utilitário `utils/rsi.ts` para cálculo de RSI a partir de klines
+- Hook `useSignalScanner.ts` que:
+  - Varre todos os pares a cada 15 minutos (full scan)
+  - Remonitoriza os top 50 (por score) a cada 30 segundos
+  - Busca klines da Binance nos timeframes 3m, 5m, 15m, 1h, 4h, 1d para cada ativo
+  - Calcula os 6 sinais de pré-alta:
+    1. Beta/correlação com BTC aumentando (comparar klines do ativo vs BTCUSDT)
+    2. Open Interest aumentando (endpoint /fapi/v1/openInterestHist)
+    3. Volume de trades aumentando (comparar volume atual vs média)
+    4. Funding rate negativo ou negativando (já disponível)
+    5. Confluência com shorts sendo abertos (long/short ratio via /fapi/v1/globalLongShortAccountRatio)
+    6. RSI acima de 40 ou cruzando 40 de baixo para cima em todos os timeframes
+  - Atribui um score de 0-6 por ativo (quantos sinais estão ativos)
+  - Ordena por score decrescente
+- Componente `pages/SignalScanner.tsx` com:
+  - Cabeçalho com status ("Última varredura completa: X min atrás", "Próximo refresh: Xs")
+  - Indicador de quantos ativos passaram em cada critério
+  - Tabela ranqueada com: posição, símbolo, score (X/6), badge por sinal ativo (BTC↑ OI↑ VOL↑ FR- SHORT RSI), RSI médio, funding rate, link para detalhe
+  - Badge visual colorido para cada sinal: verde = ativo, cinza = inativo
+  - Destaque visual (borda ciano) para ativos com score >= 5
 
 ### Modify
-- index.html: adicionar meta tags PWA e link para manifest
-- Vite config: registrar service worker
+- `pages/MarketsOverview.tsx`: adicionar Tabs (shadcn) com duas abas — "All Markets" (tabela existente) e "Signal Scanner" (novo componente)
 
 ### Remove
-- N/A
+- Nada
 
 ## Implementation Plan
-
-1. **Gerar ícones PWA profissionais** com o mascote robótico lobo/collie em hexágono ciano
-   - Ícone 192x192px (standard)
-   - Ícone 512x512px (high-res)
-   - Ícone maskable 512x512px (adaptive icon com safe zone)
-   - Apple touch icon 180x180px
-
-2. **Criar manifest.json** em `/src/frontend/public/` com:
-   - name: "Collie Monitor"
-   - short_name: "Collie"
-   - description: "Simulador de Paper Trading com Dados Reais da Binance"
-   - theme_color: "#00e5ff" (ciano)
-   - background_color: "#0a1628" (azul marinho)
-   - display: "standalone"
-   - orientation: "portrait-primary"
-   - icons array com todos os tamanhos e purposes
-
-3. **Implementar service worker** (`/src/frontend/public/sw.js`):
-   - Cache-first para assets estáticos (CSS, JS, imagens)
-   - Network-first para API calls da Binance
-   - Offline fallback page
-   - Estratégia de cache com versionamento
-
-4. **Criar componente InstallPrompt** (`/src/frontend/src/components/InstallPrompt.tsx`):
-   - Detecta evento `beforeinstallprompt`
-   - Mostra banner fixo no topo quando instalação está disponível
-   - Botão "Instalar App" com ícone de download
-   - Fecha após instalação ou dismiss pelo usuário
-   - Estilo consistente com tema (azul marinho + ciano)
-
-5. **Atualizar index.html** com meta tags PWA:
-   - `<meta name="theme-color" content="#00e5ff">`
-   - `<link rel="manifest" href="/manifest.json">`
-   - `<link rel="apple-touch-icon" href="/icon-180.png">`
-   - `<meta name="apple-mobile-web-app-capable" content="yes">`
-   - `<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">`
-   - Atualizar title para "Collie Monitor"
-
-6. **Registrar service worker** no main.tsx ou App.tsx com:
-   ```typescript
-   if ('serviceWorker' in navigator) {
-     window.addEventListener('load', () => {
-       navigator.serviceWorker.register('/sw.js')
-     })
-   }
-   ```
-
-7. **Adicionar InstallPrompt ao layout principal** (App.tsx) para exibir automaticamente quando disponível
-
-## UX Notes
-
-- O banner de instalação deve ser discreto mas visível (fixo no topo, acima do header)
-- Usar cores do tema: fundo azul marinho escuro com borda ciana e texto ciano
-- Ícone de download/add ao lado do botão "Instalar"
-- Após instalação, o app deve abrir em tela cheia sem chrome do browser
-- Splash screen deve usar fundo azul marinho com logo ciano centralizado
-- Service worker deve cachear assets críticos para funcionamento offline básico
-- Dados da API podem falhar offline, mas a UI deve continuar navegável
+1. Criar `src/frontend/src/utils/rsi.ts` com função `calculateRSI(closes: number[], period = 14): number`
+2. Criar `src/frontend/src/hooks/useSignalScanner.ts`:
+   - Estado local com lista de resultados e timestamps
+   - Full scan a cada 15min: pega todos os símbolos, calcula score rápido (funding + volume) para priorizar
+   - Deep scan top 50 a cada 30s: busca klines multi-timeframe, calcula RSI, OI history, long/short ratio
+   - Retorna `{ results, lastFullScan, nextRefreshIn, isScanning }`
+3. Criar `src/frontend/src/pages/SignalScanner.tsx` com UI da lista ranqueada
+4. Modificar `src/frontend/src/pages/MarketsOverview.tsx` para usar Tabs e incluir SignalScanner

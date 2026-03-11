@@ -1,8 +1,13 @@
-import { useState, useMemo } from "react";
-import { useTradeHistory } from "@/hooks/useQueries";
 import type { TradeResult } from "@/backend.d.ts";
-import { formatPercent } from "@/utils/formatters";
+import { ResultBadge } from "@/components/ResultBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -12,15 +17,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { ResultBadge } from "@/components/ResultBadge";
-import { TrendingUp, TrendingDown, Target } from "lucide-react";
+import { useTradeHistory } from "@/hooks/useQueries";
+import { formatPercent } from "@/utils/formatters";
+import { Target, TrendingDown, TrendingUp } from "lucide-react";
+import { useMemo, useState } from "react";
 
 export function TradeHistory() {
   const { data: allTrades, isLoading } = useTradeHistory();
@@ -99,7 +99,9 @@ export function TradeHistory() {
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold font-mono">{stats.totalTrades}</div>
+            <div className="text-2xl font-bold font-mono">
+              {stats.totalTrades}
+            </div>
           </CardContent>
         </Card>
 
@@ -150,7 +152,9 @@ export function TradeHistory() {
                   : "text-destructive"
               }`}
             >
-              {formatPercent(stats.totalTrades > 0 ? stats.totalPnl / stats.totalTrades : 0)}
+              {formatPercent(
+                stats.totalTrades > 0 ? stats.totalPnl / stats.totalTrades : 0,
+              )}
             </div>
           </CardContent>
         </Card>
@@ -197,7 +201,9 @@ export function TradeHistory() {
         <CardHeader>
           <CardTitle>
             Trade History ({filteredTrades.length}{" "}
-            {filteredTrades.length !== stats.totalTrades && `of ${stats.totalTrades}`})
+            {filteredTrades.length !== stats.totalTrades &&
+              `of ${stats.totalTrades}`}
+            )
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -232,10 +238,14 @@ export function TradeHistory() {
                       <TableCell className="font-medium">
                         {trade.moduleName}
                       </TableCell>
-                      <TableCell className="font-mono">{trade.symbol}</TableCell>
+                      <TableCell className="font-mono">
+                        {trade.symbol}
+                      </TableCell>
                       <TableCell
                         className={`text-right font-mono font-bold ${
-                          trade.finalPnl >= 0 ? "text-success" : "text-destructive"
+                          trade.finalPnl >= 0
+                            ? "text-success"
+                            : "text-destructive"
                         }`}
                       >
                         {formatPercent(trade.finalPnl)}

@@ -1,9 +1,17 @@
+import type { TradeDirection } from "@/backend.d.ts";
+import type { StrategyModule } from "@/types/market";
+import {
+  calculatePnLPercent,
+  calculateStopLoss,
+  calculateTakeProfits,
+} from "@/utils/calculations";
 import { useMemo } from "react";
 import { useMarketData } from "./useBinanceApi";
-import { useActiveTrades, useAddActiveTrade, useCloseTrade } from "./useQueries";
-import type { TradeDirection } from "@/backend.d.ts";
-import { calculateTakeProfits, calculateStopLoss, calculatePnLPercent } from "@/utils/calculations";
-import type { StrategyModule } from "@/types/market";
+import {
+  useActiveTrades,
+  useAddActiveTrade,
+  useCloseTrade,
+} from "./useQueries";
 
 // Strategy definitions
 const STRATEGY_DEFINITIONS: StrategyModule[] = [
@@ -45,8 +53,10 @@ export function useStrategyModules() {
     if (!activeTrades || !marketData) return STRATEGY_DEFINITIONS;
 
     return STRATEGY_DEFINITIONS.map((strategy) => {
-      const activeTrade = activeTrades.find((t) => t.moduleName === strategy.name);
-      
+      const activeTrade = activeTrades.find(
+        (t) => t.moduleName === strategy.name,
+      );
+
       if (activeTrade) {
         return {
           ...strategy,
@@ -80,17 +90,17 @@ export function useEnrichedActiveTrades() {
 
       const { tp1, tp2, tp3 } = calculateTakeProfits(
         trade.entryPrice,
-        trade.direction === "LONG" ? "LONG" : "SHORT"
+        trade.direction === "LONG" ? "LONG" : "SHORT",
       );
       const stopLoss = calculateStopLoss(
         trade.entryPrice,
-        trade.direction === "LONG" ? "LONG" : "SHORT"
+        trade.direction === "LONG" ? "LONG" : "SHORT",
       );
 
       const currentPnlPercent = calculatePnLPercent(
         trade.entryPrice,
         currentPrice,
-        trade.direction === "LONG" ? "LONG" : "SHORT"
+        trade.direction === "LONG" ? "LONG" : "SHORT",
       );
 
       return {
@@ -114,7 +124,7 @@ export function useEnrichedActiveTrades() {
  */
 export function evaluateStrategy(
   strategyName: string,
-  marketData: ReturnType<typeof useMarketData>["data"]
+  marketData: ReturnType<typeof useMarketData>["data"],
 ): {
   symbol: string;
   direction: TradeDirection;
@@ -129,15 +139,20 @@ export function evaluateStrategy(
       const candidates = marketData.filter(
         (m) =>
           (m.change24h > 5 && m.fundingRate > 0.0001) ||
-          (m.change24h < -5 && m.fundingRate < -0.0001)
+          (m.change24h < -5 && m.fundingRate < -0.0001),
       );
-      
+
       if (candidates.length === 0) return null;
 
-      const best = candidates.sort((a, b) => Math.abs(b.change24h) - Math.abs(a.change24h))[0];
+      const best = candidates.sort(
+        (a, b) => Math.abs(b.change24h) - Math.abs(a.change24h),
+      )[0];
       return {
         symbol: best.symbol,
-        direction: best.change24h > 0 ? ("LONG" as TradeDirection) : ("SHORT" as TradeDirection),
+        direction:
+          best.change24h > 0
+            ? ("LONG" as TradeDirection)
+            : ("SHORT" as TradeDirection),
         entryPrice: best.price,
       };
     }
@@ -161,7 +176,9 @@ export function evaluateStrategy(
 
       return {
         symbol: best.symbol,
-        direction: nearHigh ? ("LONG" as TradeDirection) : ("SHORT" as TradeDirection),
+        direction: nearHigh
+          ? ("LONG" as TradeDirection)
+          : ("SHORT" as TradeDirection),
         entryPrice: best.price,
       };
     }
@@ -172,11 +189,16 @@ export function evaluateStrategy(
 
       if (candidates.length === 0) return null;
 
-      const best = candidates.sort((a, b) => Math.abs(b.change24h) - Math.abs(a.change24h))[0];
+      const best = candidates.sort(
+        (a, b) => Math.abs(b.change24h) - Math.abs(a.change24h),
+      )[0];
 
       return {
         symbol: best.symbol,
-        direction: best.change24h > 0 ? ("SHORT" as TradeDirection) : ("LONG" as TradeDirection),
+        direction:
+          best.change24h > 0
+            ? ("SHORT" as TradeDirection)
+            : ("LONG" as TradeDirection),
         entryPrice: best.price,
       };
     }
@@ -185,18 +207,21 @@ export function evaluateStrategy(
       // Enter SHORT if funding > 0.1% (high positive)
       // Enter LONG if funding < -0.05% (negative)
       const candidates = marketData.filter(
-        (m) => m.fundingRate > 0.001 || m.fundingRate < -0.0005
+        (m) => m.fundingRate > 0.001 || m.fundingRate < -0.0005,
       );
 
       if (candidates.length === 0) return null;
 
       const best = candidates.sort(
-        (a, b) => Math.abs(b.fundingRate) - Math.abs(a.fundingRate)
+        (a, b) => Math.abs(b.fundingRate) - Math.abs(a.fundingRate),
       )[0];
 
       return {
         symbol: best.symbol,
-        direction: best.fundingRate > 0 ? ("SHORT" as TradeDirection) : ("LONG" as TradeDirection),
+        direction:
+          best.fundingRate > 0
+            ? ("SHORT" as TradeDirection)
+            : ("LONG" as TradeDirection),
         entryPrice: best.price,
       };
     }
@@ -204,7 +229,7 @@ export function evaluateStrategy(
     case "Momentum Scalp": {
       // Select top asset by absolute change and enter in direction of movement
       const sorted = [...marketData].sort(
-        (a, b) => Math.abs(b.change24h) - Math.abs(a.change24h)
+        (a, b) => Math.abs(b.change24h) - Math.abs(a.change24h),
       );
 
       if (sorted.length === 0 || Math.abs(sorted[0].change24h) < 3) return null;
@@ -213,7 +238,10 @@ export function evaluateStrategy(
 
       return {
         symbol: best.symbol,
-        direction: best.change24h > 0 ? ("LONG" as TradeDirection) : ("SHORT" as TradeDirection),
+        direction:
+          best.change24h > 0
+            ? ("LONG" as TradeDirection)
+            : ("SHORT" as TradeDirection),
         entryPrice: best.price,
       };
     }

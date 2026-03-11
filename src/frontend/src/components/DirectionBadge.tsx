@@ -1,5 +1,5 @@
-import { Badge } from "@/components/ui/badge";
 import type { TradeDirection } from "@/backend.d";
+import { Badge } from "@/components/ui/badge";
 
 interface DirectionBadgeProps {
   direction: TradeDirection;
@@ -10,10 +10,7 @@ export function DirectionBadge({ direction, className }: DirectionBadgeProps) {
   const isLong = direction === "LONG";
 
   return (
-    <Badge
-      variant={isLong ? "default" : "destructive"}
-      className={className}
-    >
+    <Badge variant={isLong ? "default" : "destructive"} className={className}>
       {direction}
     </Badge>
   );

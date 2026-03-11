@@ -1,15 +1,14 @@
-import { useMemo } from "react";
-import { useNavigate, useParams } from "@tanstack/react-router";
-import { useMarketData } from "@/hooks/useBinanceApi";
-import { getCategoryName, categorizeSymbol } from "@/utils/categories";
-import { calculateMomentumScore } from "@/utils/calculations";
-import { formatUSD, formatPercent } from "@/utils/formatters";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, TrendingUp, TrendingDown } from "lucide-react";
+import { useMarketData } from "@/hooks/useBinanceApi";
 import type { SymbolCategory } from "@/types/market";
+import { getCategoryName } from "@/utils/categories";
+import { formatPercent, formatUSD } from "@/utils/formatters";
+import { useNavigate, useParams } from "@tanstack/react-router";
+import { ArrowLeft, TrendingDown, TrendingUp } from "lucide-react";
+import { useMemo } from "react";
 
 export function CategoryDetail() {
   const navigate = useNavigate();
@@ -82,9 +81,10 @@ export function CategoryDetail() {
           <CardContent>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               {topPicks.map((symbol, index) => (
-                <div
+                <button
+                  type="button"
                   key={symbol.symbol}
-                  className="cursor-pointer rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted/50"
+                  className="cursor-pointer rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted/50 text-left w-full"
                   onClick={() => navigate({ to: `/asset/${symbol.symbol}` })}
                 >
                   <div className="flex items-start justify-between">
@@ -102,7 +102,9 @@ export function CategoryDetail() {
                     <span className="text-muted-foreground">24h Change</span>
                     <span
                       className={`font-mono font-medium ${
-                        symbol.change24h >= 0 ? "text-success" : "text-destructive"
+                        symbol.change24h >= 0
+                          ? "text-success"
+                          : "text-destructive"
                       }`}
                     >
                       {formatPercent(symbol.change24h)}
@@ -114,7 +116,7 @@ export function CategoryDetail() {
                       {symbol.momentum.toFixed(2)}
                     </span>
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           </CardContent>
@@ -128,9 +130,10 @@ export function CategoryDetail() {
         <CardContent>
           <div className="space-y-2">
             {categorySymbols.map((symbol) => (
-              <div
+              <button
+                type="button"
                 key={symbol.symbol}
-                className="flex cursor-pointer items-center justify-between rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted/50"
+                className="flex cursor-pointer items-center justify-between rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted/50 w-full"
                 onClick={() => navigate({ to: `/asset/${symbol.symbol}` })}
               >
                 <div className="flex items-center gap-6">
@@ -147,7 +150,9 @@ export function CategoryDetail() {
                     <p className="text-xs text-muted-foreground">24h Change</p>
                     <p
                       className={`font-mono text-sm font-medium ${
-                        symbol.change24h >= 0 ? "text-success" : "text-destructive"
+                        symbol.change24h >= 0
+                          ? "text-success"
+                          : "text-destructive"
                       }`}
                     >
                       <span className="inline-flex items-center gap-1">
@@ -165,7 +170,9 @@ export function CategoryDetail() {
                     <p className="text-xs text-muted-foreground">Funding</p>
                     <p
                       className={`font-mono text-sm font-medium ${
-                        symbol.fundingRate >= 0 ? "text-success" : "text-destructive"
+                        symbol.fundingRate >= 0
+                          ? "text-success"
+                          : "text-destructive"
                       }`}
                     >
                       {formatPercent(symbol.fundingRate * 100, 4)}
@@ -179,7 +186,7 @@ export function CategoryDetail() {
                     </p>
                   </div>
                 </div>
-              </div>
+              </button>
             ))}
 
             {categorySymbols.length === 0 && (

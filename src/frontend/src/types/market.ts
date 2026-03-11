@@ -3,7 +3,14 @@
  * These are frontend-only types since backend.d.ts has minimal API surface
  */
 
-export type SymbolCategory = "L1" | "L2" | "AI" | "DeFi" | "Meme" | "Gaming" | "Infrastructure";
+export type SymbolCategory =
+  | "L1"
+  | "L2"
+  | "AI"
+  | "DeFi"
+  | "Meme"
+  | "Gaming"
+  | "Infrastructure";
 
 export type MarketBias = "BULLISH" | "BEARISH" | "NEUTRAL";
 

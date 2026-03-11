@@ -8,12 +8,12 @@ interface SparklineProps {
   color?: string;
 }
 
-export function Sparkline({ 
-  data, 
-  width = 80, 
-  height = 24, 
+export function Sparkline({
+  data,
+  width = 80,
+  height = 24,
   className,
-  color = "oklch(var(--primary))"
+  color = "oklch(var(--primary))",
 }: SparklineProps) {
   if (data.length < 2) return null;
 
@@ -34,6 +34,7 @@ export function Sparkline({
       className={cn("overflow-visible", className)}
       viewBox={`0 0 ${width} ${height}`}
     >
+      <title>Sparkline chart</title>
       <polyline
         fill="none"
         stroke={color}

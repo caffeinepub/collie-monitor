@@ -1,14 +1,15 @@
-import { useMemo } from "react";
-import { useNavigate } from "@tanstack/react-router";
-import { useMarketData } from "@/hooks/useBinanceApi";
-import { getAllCategories, getCategoryName, categorizeSymbol } from "@/utils/categories";
-import { calculateMomentumScore } from "@/utils/calculations";
-import { formatPercent } from "@/utils/formatters";
+import { Sparkline } from "@/components/Sparkline";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Sparkline } from "@/components/Sparkline";
-import { TrendingUp, TrendingDown } from "lucide-react";
+import { useMarketData } from "@/hooks/useBinanceApi";
 import type { SymbolCategory } from "@/types/market";
+import { getAllCategories, getCategoryName } from "@/utils/categories";
+import { formatPercent } from "@/utils/formatters";
+import { useNavigate } from "@tanstack/react-router";
+import { TrendingDown, TrendingUp } from "lucide-react";
+import { useMemo } from "react";
+
+const SKELETON_KEYS = ["c1", "c2", "c3", "c4", "c5", "c6"];
 
 interface CategoryData {
   category: SymbolCategory;
@@ -32,7 +33,7 @@ export function CategoriesDashboard() {
     if (!marketData) return [];
 
     const categories = getAllCategories();
-    
+
     return categories.map((category): CategoryData => {
       const categorySymbols = marketData
         .filter((item) => item.category === category)
@@ -58,17 +59,16 @@ export function CategoriesDashboard() {
       const avgFunding =
         categorySymbols.reduce((sum, s) => sum + s.fundingRate, 0) /
         categorySymbols.length;
-      
+
       const avgChange =
         categorySymbols.reduce((sum, s) => sum + s.change24h, 0) /
         categorySymbols.length;
 
       const sortedByChange = [...categorySymbols].sort(
-        (a, b) => b.change24h - a.change24h
+        (a, b) => b.change24h - a.change24h,
       );
       const topPerformer = sortedByChange[0];
 
-      // Generate sparkline data (last 7 momentum snapshots - simulated)
       const momentumHistory = categorySymbols
         .slice(0, 7)
         .map((s) => s.momentum);
@@ -90,8 +90,8 @@ export function CategoriesDashboard() {
       <div className="container mx-auto space-y-6 p-6">
         <Skeleton className="h-12 w-64" />
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-48" />
+          {SKELETON_KEYS.map((key) => (
+            <Skeleton key={key} className="h-48" />
           ))}
         </div>
       </div>
@@ -100,7 +100,6 @@ export function CategoriesDashboard() {
 
   return (
     <div className="container mx-auto space-y-6 p-6">
-      {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-foreground">Categories</h1>
         <p className="text-muted-foreground">
@@ -108,7 +107,6 @@ export function CategoriesDashboard() {
         </p>
       </div>
 
-      {/* Category Grid */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {categoryData.map((cat) => (
           <Card
@@ -134,7 +132,6 @@ export function CategoriesDashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Top Performer */}
               <div>
                 <p className="text-xs text-muted-foreground">Top Performer</p>
                 <div className="flex items-center justify-between">
@@ -151,9 +148,10 @@ export function CategoriesDashboard() {
                 </div>
               </div>
 
-              {/* Avg Funding Rate */}
               <div>
-                <p className="text-xs text-muted-foreground">Avg Funding Rate</p>
+                <p className="text-xs text-muted-foreground">
+                  Avg Funding Rate
+                </p>
                 <p
                   className={`font-mono font-medium ${
                     cat.avgFunding >= 0 ? "text-success" : "text-destructive"
@@ -163,7 +161,6 @@ export function CategoriesDashboard() {
                 </p>
               </div>
 
-              {/* Momentum Sparkline */}
               <div>
                 <p className="text-xs text-muted-foreground mb-2">
                   Momentum Trend
@@ -179,7 +176,6 @@ export function CategoriesDashboard() {
                 )}
               </div>
 
-              {/* Symbol Count */}
               <div className="pt-2 border-t border-border">
                 <p className="text-xs text-muted-foreground">
                   {cat.symbols.length} symbols

@@ -1,18 +1,24 @@
-import { RouterProvider, createRouter, createRoute, createRootRoute, Outlet } from "@tanstack/react-router";
-import { useInitializeApp } from "@/hooks/useInitializeApp";
-import { Layout } from "@/components/Layout";
 import { InstallPrompt } from "@/components/InstallPrompt";
-import { MarketsOverview } from "@/pages/MarketsOverview";
+import { Layout } from "@/components/Layout";
+import { Toaster } from "@/components/ui/sonner";
+import { useInitializeApp } from "@/hooks/useInitializeApp";
+import { AssetDetail } from "@/pages/AssetDetail";
 import { CategoriesDashboard } from "@/pages/CategoriesDashboard";
 import { CategoryDetail } from "@/pages/CategoryDetail";
-import { AssetDetail } from "@/pages/AssetDetail";
+import { MarketsOverview } from "@/pages/MarketsOverview";
 import { StrategyModules } from "@/pages/StrategyModules";
 import { TradeHistory } from "@/pages/TradeHistory";
-import { Toaster } from "@/components/ui/sonner";
+import {
+  Outlet,
+  RouterProvider,
+  createRootRoute,
+  createRoute,
+  createRouter,
+} from "@tanstack/react-router";
 
 function RootComponent() {
   useInitializeApp();
-  
+
   return (
     <>
       <InstallPrompt />

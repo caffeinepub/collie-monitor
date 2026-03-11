@@ -1,22 +1,32 @@
-import { useStrategyModules, useEnrichedActiveTrades } from "@/hooks/useStrategies";
-import { useCloseTrade } from "@/hooks/useQueries";
-import { calculateProgressToTP1 } from "@/utils/calculations";
-import { formatUSD, formatPercent } from "@/utils/formatters";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DirectionBadge } from "@/components/DirectionBadge";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
-import { DirectionBadge } from "@/components/DirectionBadge";
-import { toast } from "sonner";
+import { useCloseTrade } from "@/hooks/useQueries";
+import {
+  useEnrichedActiveTrades,
+  useStrategyModules,
+} from "@/hooks/useStrategies";
+import { calculateProgressToTP1 } from "@/utils/calculations";
+import { formatPercent, formatUSD } from "@/utils/formatters";
 import { Loader2, TrendingUp } from "lucide-react";
+import { toast } from "sonner";
+
+const SKELETON_KEYS = ["s1", "s2", "s3", "s4", "s5"];
 
 export function StrategyModules() {
-  const { data: strategies, isLoading: strategiesLoading } = useStrategyModules();
+  const { data: strategies, isLoading: strategiesLoading } =
+    useStrategyModules();
   const enrichedTrades = useEnrichedActiveTrades();
   const { mutate: closeTrade, isPending: isClosing } = useCloseTrade();
 
-  const handleCloseTrade = (tradeId: bigint, currentPrice: number, entryPrice: number) => {
+  const handleCloseTrade = (
+    tradeId: bigint,
+    currentPrice: number,
+    entryPrice: number,
+  ) => {
     const finalPnl = ((currentPrice - entryPrice) / entryPrice) * 100;
 
     closeTrade(
@@ -28,7 +38,7 @@ export function StrategyModules() {
         onError: (error) => {
           toast.error(`Failed to close trade: ${error.message}`);
         },
-      }
+      },
     );
   };
 
@@ -37,8 +47,8 @@ export function StrategyModules() {
       <div className="container mx-auto space-y-6 p-6">
         <Skeleton className="h-12 w-64" />
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton key={i} className="h-64" />
+          {SKELETON_KEYS.map((key) => (
+            <Skeleton key={key} className="h-64" />
           ))}
         </div>
       </div>
@@ -46,7 +56,7 @@ export function StrategyModules() {
   }
 
   const activeTradesMap = new Map(
-    enrichedTrades.map((trade) => [trade.moduleName, trade])
+    enrichedTrades.map((trade) => [trade.moduleName, trade]),
   );
 
   return (
@@ -55,7 +65,8 @@ export function StrategyModules() {
       <div>
         <h1 className="text-3xl font-bold text-foreground">Strategy Modules</h1>
         <p className="text-muted-foreground">
-          {activeTradesMap.size} active trade{activeTradesMap.size !== 1 ? "s" : ""} across 5 strategies
+          {activeTradesMap.size} active trade
+          {activeTradesMap.size !== 1 ? "s" : ""} across 5 strategies
         </p>
       </div>
 
@@ -69,7 +80,7 @@ export function StrategyModules() {
                 activeTrade.entryPrice,
                 activeTrade.currentPrice,
                 activeTrade.tp1,
-                activeTrade.direction === "LONG" ? "LONG" : "SHORT"
+                activeTrade.direction === "LONG" ? "LONG" : "SHORT",
               )
             : 0;
 
@@ -80,27 +91,22 @@ export function StrategyModules() {
           };
 
           return (
-            <Card
-              key={strategy.name}
-              className="card-glow border-primary/20"
-            >
+            <Card key={strategy.name} className="card-glow border-primary/20">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span className="text-lg">{strategy.name}</span>
-                  <Badge
-                    className={statusColors[strategy.status]}
-                  >
-                    {strategy.status === "TradeOpen" ? "Trade Open" : strategy.status}
+                  <Badge className={statusColors[strategy.status]}>
+                    {strategy.status === "TradeOpen"
+                      ? "Trade Open"
+                      : strategy.status}
                   </Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Description */}
                 <p className="text-sm text-muted-foreground">
                   {strategy.description}
                 </p>
 
-                {/* Active Trade Info */}
                 {activeTrade ? (
                   <div className="space-y-3 rounded-lg border border-border bg-muted/30 p-4">
                     <div className="flex items-center justify-between">
@@ -131,7 +137,9 @@ export function StrategyModules() {
                       </p>
                       <p
                         className={`font-mono text-2xl font-bold ${
-                          activeTrade.currentPnlPercent >= 0 ? "text-success" : "text-destructive"
+                          activeTrade.currentPnlPercent >= 0
+                            ? "text-success"
+                            : "text-destructive"
                         }`}
                       >
                         {formatPercent(activeTrade.currentPnlPercent)}
@@ -147,7 +155,10 @@ export function StrategyModules() {
                           {progressToTP1.toFixed(0)}%
                         </span>
                       </div>
-                      <Progress value={Math.max(0, Math.min(100, progressToTP1))} className="h-2" />
+                      <Progress
+                        value={Math.max(0, Math.min(100, progressToTP1))}
+                        className="h-2"
+                      />
                     </div>
 
                     <div className="grid grid-cols-3 gap-2 text-xs">
@@ -179,7 +190,7 @@ export function StrategyModules() {
                         handleCloseTrade(
                           activeTrade.tradeId,
                           activeTrade.currentPrice,
-                          activeTrade.entryPrice
+                          activeTrade.entryPrice,
                         )
                       }
                       disabled={isClosing}

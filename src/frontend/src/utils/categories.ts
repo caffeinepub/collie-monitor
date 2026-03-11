@@ -1,4 +1,4 @@
-import { SymbolCategory } from "@/types/market";
+import type { SymbolCategory } from "@/types/market";
 
 /**
  * Categorize a symbol based on keywords
@@ -7,7 +7,18 @@ export function categorizeSymbol(symbol: string): SymbolCategory {
   const normalized = symbol.toUpperCase().replace("USDT", "");
 
   // L1 blockchains
-  const l1Keywords = ["BTC", "ETH", "SOL", "ADA", "AVAX", "DOT", "NEAR", "ATOM", "TIA", "SUI"];
+  const l1Keywords = [
+    "BTC",
+    "ETH",
+    "SOL",
+    "ADA",
+    "AVAX",
+    "DOT",
+    "NEAR",
+    "ATOM",
+    "TIA",
+    "SUI",
+  ];
   if (l1Keywords.some((kw) => normalized.includes(kw))) {
     return "L1";
   }
@@ -19,13 +30,34 @@ export function categorizeSymbol(symbol: string): SymbolCategory {
   }
 
   // AI tokens
-  const aiKeywords = ["FET", "AGIX", "OCEAN", "NMR", "GRT", "RNDR", "TAO", "WLD", "AI"];
+  const aiKeywords = [
+    "FET",
+    "AGIX",
+    "OCEAN",
+    "NMR",
+    "GRT",
+    "RNDR",
+    "TAO",
+    "WLD",
+    "AI",
+  ];
   if (aiKeywords.some((kw) => normalized.includes(kw))) {
     return "AI";
   }
 
   // DeFi protocols
-  const defiKeywords = ["UNI", "AAVE", "CRV", "SNX", "COMP", "MKR", "LDO", "SUSHI", "BAL", "1INCH"];
+  const defiKeywords = [
+    "UNI",
+    "AAVE",
+    "CRV",
+    "SNX",
+    "COMP",
+    "MKR",
+    "LDO",
+    "SUSHI",
+    "BAL",
+    "1INCH",
+  ];
   if (defiKeywords.some((kw) => normalized.includes(kw))) {
     return "DeFi";
   }
@@ -37,7 +69,16 @@ export function categorizeSymbol(symbol: string): SymbolCategory {
   }
 
   // Gaming
-  const gamingKeywords = ["AXS", "SAND", "MANA", "ENJ", "GALA", "IMX", "BEAM", "PRIME"];
+  const gamingKeywords = [
+    "AXS",
+    "SAND",
+    "MANA",
+    "ENJ",
+    "GALA",
+    "IMX",
+    "BEAM",
+    "PRIME",
+  ];
   if (gamingKeywords.some((kw) => normalized.includes(kw))) {
     return "Gaming";
   }
@@ -49,7 +90,10 @@ export function categorizeSymbol(symbol: string): SymbolCategory {
 /**
  * Get initial symbols to populate backend
  */
-export function getInitialSymbols(): Array<{ symbol: string; category: SymbolCategory }> {
+export function getInitialSymbols(): Array<{
+  symbol: string;
+  category: SymbolCategory;
+}> {
   return [
     { symbol: "BTCUSDT", category: "L1" },
     { symbol: "ETHUSDT", category: "L1" },
@@ -79,13 +123,13 @@ export function getInitialSymbols(): Array<{ symbol: string; category: SymbolCat
  */
 export function getCategoryName(category: SymbolCategory): string {
   const names: Record<SymbolCategory, string> = {
-    "L1": "Layer 1",
-    "L2": "Layer 2",
-    "AI": "AI & ML",
-    "DeFi": "DeFi",
-    "Meme": "Meme Coins",
-    "Gaming": "Gaming",
-    "Infrastructure": "Infrastructure",
+    L1: "Layer 1",
+    L2: "Layer 2",
+    AI: "AI & ML",
+    DeFi: "DeFi",
+    Meme: "Meme Coins",
+    Gaming: "Gaming",
+    Infrastructure: "Infrastructure",
   };
   return names[category];
 }
@@ -94,13 +138,5 @@ export function getCategoryName(category: SymbolCategory): string {
  * Get all categories as array
  */
 export function getAllCategories(): SymbolCategory[] {
-  return [
-    "L1",
-    "L2",
-    "AI",
-    "DeFi",
-    "Meme",
-    "Gaming",
-    "Infrastructure",
-  ];
+  return ["L1", "L2", "AI", "DeFi", "Meme", "Gaming", "Infrastructure"];
 }

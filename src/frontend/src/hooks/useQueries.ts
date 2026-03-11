@@ -1,6 +1,11 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import type {
+  ActiveTrade,
+  ClosedTrade,
+  TradeDirection,
+  TradeResult,
+} from "@/backend.d.ts";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useActor } from "./useActor";
-import type { ActiveTrade, ClosedTrade, TradeDirection, TradeResult } from "@/backend.d.ts";
 
 /**
  * Get all active trades from backend
@@ -103,7 +108,10 @@ export function useCloseTrade() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ tradeId, finalPnl }: { tradeId: bigint; finalPnl: number }) => {
+    mutationFn: async ({
+      tradeId,
+      finalPnl,
+    }: { tradeId: bigint; finalPnl: number }) => {
       if (!actor) throw new Error("Actor not initialized");
       await actor.closeTrade(tradeId, finalPnl);
     },

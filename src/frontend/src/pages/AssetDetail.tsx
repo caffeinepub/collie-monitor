@@ -1,24 +1,26 @@
-import { useParams, useNavigate } from "@tanstack/react-router";
+import { MarketBiasBadge } from "@/components/MarketBiasBadge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useMarketData, useOpenInterest } from "@/hooks/useBinanceApi";
 import {
   calculateEntryZone,
-  calculateTakeProfits,
-  calculateStopLoss,
-  getMarketBias,
   calculateLongShortRatio,
+  calculateStopLoss,
+  calculateTakeProfits,
+  getMarketBias,
 } from "@/utils/calculations";
-import { formatUSD, formatPercent, formatCompact } from "@/utils/formatters";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { MarketBiasBadge } from "@/components/MarketBiasBadge";
-import { ArrowLeft, TrendingUp, TrendingDown } from "lucide-react";
+import { formatCompact, formatPercent, formatUSD } from "@/utils/formatters";
+import { useNavigate, useParams } from "@tanstack/react-router";
+import { ArrowLeft, TrendingDown, TrendingUp } from "lucide-react";
 
 export function AssetDetail() {
   const navigate = useNavigate();
   const { symbol } = useParams({ strict: false });
   const { data: marketData, isLoading } = useMarketData();
-  const { data: openInterest, isLoading: oiLoading } = useOpenInterest(symbol || "");
+  const { data: openInterest, isLoading: oiLoading } = useOpenInterest(
+    symbol || "",
+  );
 
   const assetData = marketData?.find((item) => item.symbol === symbol);
 
@@ -125,7 +127,9 @@ export function AssetDetail() {
               <p className="text-xs text-muted-foreground">Funding Rate</p>
               <p
                 className={`font-mono text-lg font-medium ${
-                  assetData.fundingRate >= 0 ? "text-success" : "text-destructive"
+                  assetData.fundingRate >= 0
+                    ? "text-success"
+                    : "text-destructive"
                 }`}
               >
                 {formatPercent(assetData.fundingRate * 100, 4)}

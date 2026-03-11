@@ -1,12 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
-import { categorizeSymbol } from "@/utils/categories";
-import { calculateMomentumScore } from "@/utils/calculations";
 import type { CategorizedMarketData } from "@/types/market";
+import { calculateMomentumScore } from "@/utils/calculations";
+import { categorizeSymbol } from "@/utils/categories";
+import { useQuery } from "@tanstack/react-query";
 
 const BINANCE_BASE_URL = "https://fapi.binance.com";
-const REFRESH_INTERVAL = 60_000; // 60 seconds
+const REFRESH_INTERVAL = 60_000;
 
-// Types for Binance API responses
 export interface BinanceSymbol {
   symbol: string;
   pair: string;
@@ -44,9 +43,6 @@ export interface BinanceOpenInterest {
   time: number;
 }
 
-/**
- * Fetch all perpetual USDT symbols
- */
 export function useBinanceSymbols() {
   return useQuery({
     queryKey: ["binance", "symbols"],
@@ -54,15 +50,14 @@ export function useBinanceSymbols() {
       const response = await fetch(`${BINANCE_BASE_URL}/fapi/v1/exchangeInfo`);
       if (!response.ok) throw new Error("Failed to fetch symbols");
       const data = await response.json();
-      
-      // Filter for perpetual USDT contracts
+
       const perpetualSymbols = (data.symbols as BinanceSymbol[]).filter(
         (s) =>
           s.contractType === "PERPETUAL" &&
           s.quoteAsset === "USDT" &&
-          s.status === "TRADING"
+          s.status === "TRADING",
       );
-      
+
       return perpetualSymbols;
     },
     refetchInterval: REFRESH_INTERVAL,
@@ -70,9 +65,6 @@ export function useBinanceSymbols() {
   });
 }
 
-/**
- * Fetch 24h ticker data for all symbols
- */
 export function useBinanceTicker() {
   return useQuery({
     queryKey: ["binance", "ticker"],
@@ -80,13 +72,12 @@ export function useBinanceTicker() {
       const response = await fetch(`${BINANCE_BASE_URL}/fapi/v1/ticker/24hr`);
       if (!response.ok) throw new Error("Failed to fetch ticker data");
       const data: BinanceTicker[] = await response.json();
-      
-      // Convert to map for easy lookup
+
       const tickerMap = new Map<string, BinanceTicker>();
-      data.forEach((ticker) => {
+      for (const ticker of data) {
         tickerMap.set(ticker.symbol, ticker);
-      });
-      
+      }
+
       return tickerMap;
     },
     refetchInterval: REFRESH_INTERVAL,
@@ -94,9 +85,6 @@ export function useBinanceTicker() {
   });
 }
 
-/**
- * Fetch funding rates for all symbols
- */
 export function useFundingRates() {
   return useQuery({
     queryKey: ["binance", "fundingRates"],
@@ -104,13 +92,12 @@ export function useFundingRates() {
       const response = await fetch(`${BINANCE_BASE_URL}/fapi/v1/premiumIndex`);
       if (!response.ok) throw new Error("Failed to fetch funding rates");
       const data: BinanceFundingRate[] = await response.json();
-      
-      // Convert to map for easy lookup
+
       const fundingMap = new Map<string, number>();
-      data.forEach((rate) => {
-        fundingMap.set(rate.symbol, parseFloat(rate.fundingRate));
-      });
-      
+      for (const rate of data) {
+        fundingMap.set(rate.symbol, Number.parseFloat(rate.fundingRate));
+      }
+
       return fundingMap;
     },
     refetchInterval: REFRESH_INTERVAL,
@@ -118,19 +105,16 @@ export function useFundingRates() {
   });
 }
 
-/**
- * Fetch open interest for a specific symbol
- */
 export function useOpenInterest(symbol: string) {
   return useQuery({
     queryKey: ["binance", "openInterest", symbol],
     queryFn: async () => {
       const response = await fetch(
-        `${BINANCE_BASE_URL}/fapi/v1/openInterest?symbol=${symbol}`
+        `${BINANCE_BASE_URL}/fapi/v1/openInterest?symbol=${symbol}`,
       );
       if (!response.ok) throw new Error("Failed to fetch open interest");
       const data: BinanceOpenInterest = await response.json();
-      return parseFloat(data.openInterest);
+      return Number.parseFloat(data.openInterest);
     },
     refetchInterval: REFRESH_INTERVAL,
     staleTime: 30_000,
@@ -138,9 +122,6 @@ export function useOpenInterest(symbol: string) {
   });
 }
 
-/**
- * Combined market data hook - merges ticker and funding rate data with categorization
- */
 export function useMarketData() {
   const { data: symbols } = useBinanceSymbols();
   const { data: tickerMap, isLoading: tickerLoading } = useBinanceTicker();
@@ -148,34 +129,37 @@ export function useMarketData() {
 
   const isLoading = tickerLoading || fundingLoading;
 
-  const marketData: CategorizedMarketData[] = symbols?.map((symbol) => {
-    const ticker = tickerMap?.get(symbol.symbol);
-    const fundingRate = fundingMap?.get(symbol.symbol) || 0;
+  const marketData: CategorizedMarketData[] =
+    symbols
+      ?.map((symbol) => {
+        const ticker = tickerMap?.get(symbol.symbol);
+        const fundingRate = fundingMap?.get(symbol.symbol) || 0;
 
-    if (!ticker) return null;
+        if (!ticker) return null;
 
-    const price = parseFloat(ticker.lastPrice);
-    const change24h = parseFloat(ticker.priceChangePercent);
-    const volume = parseFloat(ticker.quoteVolume);
-    const high24h = parseFloat(ticker.highPrice);
-    const low24h = parseFloat(ticker.lowPrice);
+        const price = Number.parseFloat(ticker.lastPrice);
+        const change24h = Number.parseFloat(ticker.priceChangePercent);
+        const volume = Number.parseFloat(ticker.quoteVolume);
+        const high24h = Number.parseFloat(ticker.highPrice);
+        const low24h = Number.parseFloat(ticker.lowPrice);
 
-    const category = categorizeSymbol(symbol.symbol);
-    const momentum = calculateMomentumScore(change24h, volume, fundingRate);
+        const category = categorizeSymbol(symbol.symbol);
+        const momentum = calculateMomentumScore(change24h, volume, fundingRate);
 
-    return {
-      symbol: symbol.symbol,
-      price,
-      change24h,
-      volume,
-      high24h,
-      low24h,
-      fundingRate,
-      openInterest: 0, // Will be fetched individually when needed
-      category,
-      momentum,
-    };
-  }).filter((item): item is CategorizedMarketData => item !== null) || [];
+        return {
+          symbol: symbol.symbol,
+          price,
+          change24h,
+          volume,
+          high24h,
+          low24h,
+          fundingRate,
+          openInterest: 0,
+          category,
+          momentum,
+        };
+      })
+      .filter((item): item is CategorizedMarketData => item !== null) || [];
 
   return {
     data: marketData,

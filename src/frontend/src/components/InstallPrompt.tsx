@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
-import { Download, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Download, X } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -8,7 +8,8 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export function InstallPrompt() {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [deferredPrompt, setDeferredPrompt] =
+    useState<BeforeInstallPromptEvent | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
 
   useEffect(() => {
@@ -26,7 +27,10 @@ export function InstallPrompt() {
     }
 
     return () => {
-      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      window.removeEventListener(
+        "beforeinstallprompt",
+        handleBeforeInstallPrompt,
+      );
     };
   }, []);
 
