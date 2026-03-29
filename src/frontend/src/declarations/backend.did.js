@@ -8,88 +8,223 @@
 
 import { IDL } from '@icp-sdk/core/candid';
 
-export const TradeDirection = IDL.Variant({
-  'LONG' : IDL.Null,
-  'SHORT' : IDL.Null,
+export const ZoneType = IDL.Variant({
+  'support' : IDL.Null,
+  'resistance' : IDL.Null,
 });
-export const ActiveTrade = IDL.Record({
-  'direction' : TradeDirection,
-  'moduleName' : IDL.Text,
-  'tradeId' : IDL.Nat,
-  'entryPrice' : IDL.Float64,
-  'currentPnl' : IDL.Float64,
+export const Time = IDL.Int;
+export const MarketCacheEntry = IDL.Record({
+  'data' : IDL.Text,
+  'timestamp' : Time,
   'symbol' : IDL.Text,
 });
-export const TradeResult = IDL.Variant({ 'WIN' : IDL.Null, 'LOSS' : IDL.Null });
-export const ClosedTrade = IDL.Record({
-  'result' : TradeResult,
-  'moduleName' : IDL.Text,
-  'tradeId' : IDL.Nat,
-  'symbol' : IDL.Text,
-  'finalPnl' : IDL.Float64,
+export const TradeSide = IDL.Variant({ 'long' : IDL.Null, 'short' : IDL.Null });
+export const TradeStyle = IDL.Variant({
+  'scalping' : IDL.Null,
+  'dayTrade' : IDL.Null,
+  'positionTrade' : IDL.Null,
+  'swingTrade' : IDL.Null,
+});
+export const PaperTradeState = IDL.Variant({
+  'closed' : IDL.Record({
+    'stoppedOut' : IDL.Bool,
+    'closedAt' : Time,
+    'tradeNotes' : IDL.Text,
+    'entryPrice' : IDL.Float64,
+    'exitPrice' : IDL.Float64,
+    'openedAt' : Time,
+  }),
+  'open' : IDL.Record({
+    'behavioralChecklist' : IDL.Text,
+    'positionManagementNotes' : IDL.Text,
+    'side' : TradeSide,
+    'setupDescription' : IDL.Text,
+    'style' : TradeStyle,
+    'target' : IDL.Float64,
+    'contextFilter' : IDL.Text,
+    'stopLoss' : IDL.Float64,
+    'entryPrice' : IDL.Float64,
+    'riskManagementNotes' : IDL.Text,
+    'symbol' : IDL.Text,
+    'openedAt' : Time,
+  }),
+});
+export const Zone = IDL.Record({
+  'zoneLabel' : IDL.Text,
+  'zoneType' : ZoneType,
+  'price' : IDL.Float64,
 });
 
 export const idlService = IDL.Service({
-  'addActiveTrade' : IDL.Func(
-      [IDL.Text, IDL.Text, TradeDirection, IDL.Float64],
+  'addZone' : IDL.Func([IDL.Float64, IDL.Text, ZoneType], [IDL.Nat], []),
+  'closePaperTrade' : IDL.Func(
+      [IDL.Nat, IDL.Float64, IDL.Bool, IDL.Text],
+      [IDL.Bool],
+      [],
+    ),
+  'deleteZone' : IDL.Func([IDL.Nat], [IDL.Bool], []),
+  'getAllMarketCache' : IDL.Func([], [IDL.Vec(MarketCacheEntry)], ['query']),
+  'getAllTrades' : IDL.Func([], [IDL.Vec(PaperTradeState)], ['query']),
+  'getClosedTrades' : IDL.Func(
+      [],
+      [IDL.Vec(IDL.Record({ 'trade' : PaperTradeState, 'tradeId' : IDL.Nat }))],
+      ['query'],
+    ),
+  'getMarketCache' : IDL.Func(
+      [IDL.Nat],
+      [IDL.Opt(MarketCacheEntry)],
+      ['query'],
+    ),
+  'getMarketCacheForSymbol' : IDL.Func(
+      [IDL.Text],
+      [IDL.Vec(MarketCacheEntry)],
+      ['query'],
+    ),
+  'getOpenTrades' : IDL.Func(
+      [],
+      [IDL.Vec(IDL.Record({ 'trade' : PaperTradeState, 'tradeId' : IDL.Nat }))],
+      ['query'],
+    ),
+  'getTrade' : IDL.Func([IDL.Nat], [IDL.Opt(PaperTradeState)], ['query']),
+  'getTradesForSymbol' : IDL.Func(
+      [IDL.Text],
+      [IDL.Vec(PaperTradeState)],
+      ['query'],
+    ),
+  'getZones' : IDL.Func([], [IDL.Vec(Zone)], ['query']),
+  'openPaperTrade' : IDL.Func(
+      [
+        IDL.Text,
+        TradeSide,
+        IDL.Float64,
+        IDL.Float64,
+        IDL.Float64,
+        TradeStyle,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+      ],
       [IDL.Nat],
       [],
     ),
-  'closeTrade' : IDL.Func([IDL.Nat, IDL.Float64], [], []),
-  'getActiveTrades' : IDL.Func([], [IDL.Vec(ActiveTrade)], ['query']),
-  'getClosedTrades' : IDL.Func([], [IDL.Vec(ClosedTrade)], ['query']),
-  'getClosedTradesByModule' : IDL.Func(
-      [IDL.Text],
-      [IDL.Vec(ClosedTrade)],
-      ['query'],
-    ),
-  'getClosedTradesByResult' : IDL.Func(
-      [TradeResult],
-      [IDL.Vec(ClosedTrade)],
-      ['query'],
-    ),
+  'storeMarketCache' : IDL.Func([IDL.Text, IDL.Text], [IDL.Nat], []),
 });
 
 export const idlInitArgs = [];
 
 export const idlFactory = ({ IDL }) => {
-  const TradeDirection = IDL.Variant({ 'LONG' : IDL.Null, 'SHORT' : IDL.Null });
-  const ActiveTrade = IDL.Record({
-    'direction' : TradeDirection,
-    'moduleName' : IDL.Text,
-    'tradeId' : IDL.Nat,
-    'entryPrice' : IDL.Float64,
-    'currentPnl' : IDL.Float64,
+  const ZoneType = IDL.Variant({
+    'support' : IDL.Null,
+    'resistance' : IDL.Null,
+  });
+  const Time = IDL.Int;
+  const MarketCacheEntry = IDL.Record({
+    'data' : IDL.Text,
+    'timestamp' : Time,
     'symbol' : IDL.Text,
   });
-  const TradeResult = IDL.Variant({ 'WIN' : IDL.Null, 'LOSS' : IDL.Null });
-  const ClosedTrade = IDL.Record({
-    'result' : TradeResult,
-    'moduleName' : IDL.Text,
-    'tradeId' : IDL.Nat,
-    'symbol' : IDL.Text,
-    'finalPnl' : IDL.Float64,
+  const TradeSide = IDL.Variant({ 'long' : IDL.Null, 'short' : IDL.Null });
+  const TradeStyle = IDL.Variant({
+    'scalping' : IDL.Null,
+    'dayTrade' : IDL.Null,
+    'positionTrade' : IDL.Null,
+    'swingTrade' : IDL.Null,
+  });
+  const PaperTradeState = IDL.Variant({
+    'closed' : IDL.Record({
+      'stoppedOut' : IDL.Bool,
+      'closedAt' : Time,
+      'tradeNotes' : IDL.Text,
+      'entryPrice' : IDL.Float64,
+      'exitPrice' : IDL.Float64,
+      'openedAt' : Time,
+    }),
+    'open' : IDL.Record({
+      'behavioralChecklist' : IDL.Text,
+      'positionManagementNotes' : IDL.Text,
+      'side' : TradeSide,
+      'setupDescription' : IDL.Text,
+      'style' : TradeStyle,
+      'target' : IDL.Float64,
+      'contextFilter' : IDL.Text,
+      'stopLoss' : IDL.Float64,
+      'entryPrice' : IDL.Float64,
+      'riskManagementNotes' : IDL.Text,
+      'symbol' : IDL.Text,
+      'openedAt' : Time,
+    }),
+  });
+  const Zone = IDL.Record({
+    'zoneLabel' : IDL.Text,
+    'zoneType' : ZoneType,
+    'price' : IDL.Float64,
   });
   
   return IDL.Service({
-    'addActiveTrade' : IDL.Func(
-        [IDL.Text, IDL.Text, TradeDirection, IDL.Float64],
+    'addZone' : IDL.Func([IDL.Float64, IDL.Text, ZoneType], [IDL.Nat], []),
+    'closePaperTrade' : IDL.Func(
+        [IDL.Nat, IDL.Float64, IDL.Bool, IDL.Text],
+        [IDL.Bool],
+        [],
+      ),
+    'deleteZone' : IDL.Func([IDL.Nat], [IDL.Bool], []),
+    'getAllMarketCache' : IDL.Func([], [IDL.Vec(MarketCacheEntry)], ['query']),
+    'getAllTrades' : IDL.Func([], [IDL.Vec(PaperTradeState)], ['query']),
+    'getClosedTrades' : IDL.Func(
+        [],
+        [
+          IDL.Vec(
+            IDL.Record({ 'trade' : PaperTradeState, 'tradeId' : IDL.Nat })
+          ),
+        ],
+        ['query'],
+      ),
+    'getMarketCache' : IDL.Func(
+        [IDL.Nat],
+        [IDL.Opt(MarketCacheEntry)],
+        ['query'],
+      ),
+    'getMarketCacheForSymbol' : IDL.Func(
+        [IDL.Text],
+        [IDL.Vec(MarketCacheEntry)],
+        ['query'],
+      ),
+    'getOpenTrades' : IDL.Func(
+        [],
+        [
+          IDL.Vec(
+            IDL.Record({ 'trade' : PaperTradeState, 'tradeId' : IDL.Nat })
+          ),
+        ],
+        ['query'],
+      ),
+    'getTrade' : IDL.Func([IDL.Nat], [IDL.Opt(PaperTradeState)], ['query']),
+    'getTradesForSymbol' : IDL.Func(
+        [IDL.Text],
+        [IDL.Vec(PaperTradeState)],
+        ['query'],
+      ),
+    'getZones' : IDL.Func([], [IDL.Vec(Zone)], ['query']),
+    'openPaperTrade' : IDL.Func(
+        [
+          IDL.Text,
+          TradeSide,
+          IDL.Float64,
+          IDL.Float64,
+          IDL.Float64,
+          TradeStyle,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+        ],
         [IDL.Nat],
         [],
       ),
-    'closeTrade' : IDL.Func([IDL.Nat, IDL.Float64], [], []),
-    'getActiveTrades' : IDL.Func([], [IDL.Vec(ActiveTrade)], ['query']),
-    'getClosedTrades' : IDL.Func([], [IDL.Vec(ClosedTrade)], ['query']),
-    'getClosedTradesByModule' : IDL.Func(
-        [IDL.Text],
-        [IDL.Vec(ClosedTrade)],
-        ['query'],
-      ),
-    'getClosedTradesByResult' : IDL.Func(
-        [TradeResult],
-        [IDL.Vec(ClosedTrade)],
-        ['query'],
-      ),
+    'storeMarketCache' : IDL.Func([IDL.Text, IDL.Text], [IDL.Nat], []),
   });
 };
 

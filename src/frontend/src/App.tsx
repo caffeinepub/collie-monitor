@@ -1,13 +1,9 @@
-import { InstallPrompt } from "@/components/InstallPrompt";
 import { Layout } from "@/components/Layout";
 import { Toaster } from "@/components/ui/sonner";
-import { useInitializeApp } from "@/hooks/useInitializeApp";
-import { AssetDetail } from "@/pages/AssetDetail";
-import { CategoriesDashboard } from "@/pages/CategoriesDashboard";
-import { CategoryDetail } from "@/pages/CategoryDetail";
-import { MarketsOverview } from "@/pages/MarketsOverview";
-import { StrategyModules } from "@/pages/StrategyModules";
-import { TradeHistory } from "@/pages/TradeHistory";
+import { BTCMonitor } from "@/pages/BTCMonitor";
+import { Diario } from "@/pages/Diario";
+import { Estrategias } from "@/pages/Estrategias";
+import { Scanner } from "@/pages/Scanner";
 import {
   Outlet,
   RouterProvider,
@@ -17,11 +13,8 @@ import {
 } from "@tanstack/react-router";
 
 function RootComponent() {
-  useInitializeApp();
-
   return (
     <>
-      <InstallPrompt />
       <Layout>
         <Outlet />
       </Layout>
@@ -30,53 +23,37 @@ function RootComponent() {
   );
 }
 
-const rootRoute = createRootRoute({
-  component: RootComponent,
-});
+const rootRoute = createRootRoute({ component: RootComponent });
 
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
-  component: MarketsOverview,
+  component: BTCMonitor,
 });
 
-const categoriesRoute = createRoute({
+const scannerRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/categories",
-  component: CategoriesDashboard,
+  path: "/scanner",
+  component: Scanner,
 });
 
-const categoryDetailRoute = createRoute({
+const estrategiasRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/category/$categoryName",
-  component: CategoryDetail,
+  path: "/estrategias",
+  component: Estrategias,
 });
 
-const assetDetailRoute = createRoute({
+const diarioRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/asset/$symbol",
-  component: AssetDetail,
-});
-
-const strategiesRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/strategies",
-  component: StrategyModules,
-});
-
-const historyRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/history",
-  component: TradeHistory,
+  path: "/diario",
+  component: Diario,
 });
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
-  categoriesRoute,
-  categoryDetailRoute,
-  assetDetailRoute,
-  strategiesRoute,
-  historyRoute,
+  scannerRoute,
+  estrategiasRoute,
+  diarioRoute,
 ]);
 
 const router = createRouter({ routeTree });

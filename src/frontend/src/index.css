@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -22,8 +22,8 @@
     --secondary: 0.17 0.015 240;
     --secondary-foreground: 0.93 0.008 240;
     /* Muted */
-    --muted: 0.20 0.015 240;
-    --muted-foreground: 0.60 0.015 240;
+    --muted: 0.2 0.015 240;
+    --muted-foreground: 0.6 0.015 240;
     /* Orange accent */
     --accent: 0.68 0.18 50;
     --accent-foreground: 0.09 0.008 240;
@@ -31,20 +31,20 @@
     --success: 0.88 0.28 130;
     --success-foreground: 0.09 0.008 240;
     /* Red destructive #E04B4B */
-    --destructive: 0.60 0.19 20;
+    --destructive: 0.6 0.19 20;
     --destructive-foreground: 0.93 0.008 240;
     /* Borders */
     --border: 0.22 0.018 240;
-    --input: 0.20 0.015 240;
+    --input: 0.2 0.015 240;
     --ring: 0.68 0.18 50;
     /* Chart colors */
     --chart-1: 0.68 0.18 50;
     --chart-2: 0.88 0.28 130;
-    --chart-3: 0.60 0.19 20;
+    --chart-3: 0.6 0.19 20;
     --chart-4: 0.73 0.18 145;
     --chart-5: 0.55 0.15 270;
     /* Sidebar */
-    --sidebar: 0.11 0.010 240;
+    --sidebar: 0.11 0.01 240;
     --sidebar-foreground: 0.93 0.008 240;
     --sidebar-primary: 0.68 0.18 50;
     --sidebar-primary-foreground: 0.09 0.008 240;
@@ -53,16 +53,16 @@
     --sidebar-border: 0.22 0.018 240;
     --sidebar-ring: 0.68 0.18 50;
     /* Custom brand tokens */
-    --bg: #0B0D10;
-    --surface: #14181D;
-    --surface2: #1A2026;
-    --clr-border: #232B33;
-    --text: #E8EDF2;
-    --muted-clr: #9AA6B2;
-    --orange: #F57C1F;
-    --green: #39FF14;
-    --green-dim: #34D26A;
-    --red: #E04B4B;
+    --bg: #0b0d10;
+    --surface: #14181d;
+    --surface2: #1a2026;
+    --clr-border: #232b33;
+    --text: #e8edf2;
+    --muted-clr: #9aa6b2;
+    --orange: #f57c1f;
+    --green: #39ff14;
+    --green-dim: #34d26a;
+    --red: #e04b4b;
   }
 
   * {
@@ -72,26 +72,52 @@
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: "Inter", system-ui, sans-serif;
   }
 
   .font-mono {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: "JetBrains Mono", monospace;
   }
 
   /* Scrollbar */
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { background: var(--surface); }
-  ::-webkit-scrollbar-thumb { background: var(--clr-border); border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: var(--orange); }
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--surface);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--clr-border);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--orange);
+  }
 
   /* Glow utilities */
-  .glow-orange { box-shadow: 0 0 16px rgba(245, 124, 31, 0.4); }
-  .glow-green { box-shadow: 0 0 16px rgba(57, 255, 20, 0.4); }
-  .text-orange { color: var(--orange); }
-  .text-green-kw { color: var(--green); }
-  .text-red-cl { color: var(--red); }
-  .bg-surface { background: var(--surface); }
-  .bg-surface2 { background: var(--surface2); }
-  .border-clr { border-color: var(--clr-border); }
+  .glow-orange {
+    box-shadow: 0 0 16px rgba(245, 124, 31, 0.4);
+  }
+  .glow-green {
+    box-shadow: 0 0 16px rgba(57, 255, 20, 0.4);
+  }
+  .text-orange {
+    color: var(--orange);
+  }
+  .text-green-kw {
+    color: var(--green);
+  }
+  .text-red-cl {
+    color: var(--red);
+  }
+  .bg-surface {
+    background: var(--surface);
+  }
+  .bg-surface2 {
+    background: var(--surface2);
+  }
+  .border-clr {
+    border-color: var(--clr-border);
+  }
 }

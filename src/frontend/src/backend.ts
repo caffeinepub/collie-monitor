@@ -89,228 +89,565 @@ export class ExternalBlob {
         return this;
     }
 }
-export interface ActiveTrade {
-    direction: TradeDirection;
-    moduleName: string;
-    tradeId: bigint;
-    entryPrice: number;
-    currentPnl: number;
+export interface Zone {
+    zoneLabel: string;
+    zoneType: ZoneType;
+    price: number;
+}
+export type Time = bigint;
+export type PaperTradeState = {
+    __kind__: "closed";
+    closed: {
+        stoppedOut: boolean;
+        closedAt: Time;
+        tradeNotes: string;
+        entryPrice: number;
+        exitPrice: number;
+        openedAt: Time;
+    };
+} | {
+    __kind__: "open";
+    open: {
+        behavioralChecklist: string;
+        positionManagementNotes: string;
+        side: TradeSide;
+        setupDescription: string;
+        style: TradeStyle;
+        target: number;
+        contextFilter: string;
+        stopLoss: number;
+        entryPrice: number;
+        riskManagementNotes: string;
+        symbol: string;
+        openedAt: Time;
+    };
+};
+export interface MarketCacheEntry {
+    data: string;
+    timestamp: Time;
     symbol: string;
 }
-export interface ClosedTrade {
-    result: TradeResult;
-    moduleName: string;
-    tradeId: bigint;
-    symbol: string;
-    finalPnl: number;
+export enum TradeSide {
+    long_ = "long",
+    short_ = "short"
 }
-export enum TradeDirection {
-    LONG = "LONG",
-    SHORT = "SHORT"
+export enum TradeStyle {
+    scalping = "scalping",
+    dayTrade = "dayTrade",
+    positionTrade = "positionTrade",
+    swingTrade = "swingTrade"
 }
-export enum TradeResult {
-    WIN = "WIN",
-    LOSS = "LOSS"
+export enum ZoneType {
+    support = "support",
+    resistance = "resistance"
 }
 export interface backendInterface {
-    addActiveTrade(moduleName: string, symbol: string, direction: TradeDirection, entryPrice: number): Promise<bigint>;
-    closeTrade(tradeId: bigint, finalPnl: number): Promise<void>;
-    getActiveTrades(): Promise<Array<ActiveTrade>>;
-    getClosedTrades(): Promise<Array<ClosedTrade>>;
-    getClosedTradesByModule(moduleName: string): Promise<Array<ClosedTrade>>;
-    getClosedTradesByResult(result: TradeResult): Promise<Array<ClosedTrade>>;
+    /**
+     * / Add a new support/resistance zone
+     */
+    addZone(price: number, zoneLabel: string, zoneType: ZoneType): Promise<bigint>;
+    /**
+     * / Close a paper trade
+     */
+    closePaperTrade(id: bigint, exitPrice: number, stoppedOut: boolean, tradeNotes: string): Promise<boolean>;
+    /**
+     * / Delete a zone by id
+     */
+    deleteZone(id: bigint): Promise<boolean>;
+    /**
+     * / Get all market cache data
+     */
+    getAllMarketCache(): Promise<Array<MarketCacheEntry>>;
+    /**
+     * / Get all paper trades
+     */
+    getAllTrades(): Promise<Array<PaperTradeState>>;
+    /**
+     * / Get all closed trades
+     */
+    getClosedTrades(): Promise<Array<{
+        trade: PaperTradeState;
+        tradeId: bigint;
+    }>>;
+    /**
+     * / Get market cache data by id
+     */
+    getMarketCache(id: bigint): Promise<MarketCacheEntry | null>;
+    /**
+     * / Get all market cache data for a symbol
+     */
+    getMarketCacheForSymbol(symbol: string): Promise<Array<MarketCacheEntry>>;
+    /**
+     * / Get all open trades
+     */
+    getOpenTrades(): Promise<Array<{
+        trade: PaperTradeState;
+        tradeId: bigint;
+    }>>;
+    /**
+     * / Get trade by id
+     */
+    getTrade(id: bigint): Promise<PaperTradeState | null>;
+    /**
+     * / Get trades for a symbol
+     */
+    getTradesForSymbol(symbol: string): Promise<Array<PaperTradeState>>;
+    /**
+     * / Get all zones
+     */
+    getZones(): Promise<Array<Zone>>;
+    /**
+     * / Open a new paper trade
+     */
+    openPaperTrade(symbol: string, side: TradeSide, entryPrice: number, stopLoss: number, target: number, style: TradeStyle, setupDescription: string, contextFilter: string, riskManagementNotes: string, positionManagementNotes: string, behavioralChecklist: string): Promise<bigint>;
+    /**
+     * / Store market data cache entry
+     */
+    storeMarketCache(symbol: string, data: string): Promise<bigint>;
 }
-import type { ActiveTrade as _ActiveTrade, ClosedTrade as _ClosedTrade, TradeDirection as _TradeDirection, TradeResult as _TradeResult } from "./declarations/backend.did.d.ts";
+import type { MarketCacheEntry as _MarketCacheEntry, PaperTradeState as _PaperTradeState, Time as _Time, TradeSide as _TradeSide, TradeStyle as _TradeStyle, Zone as _Zone, ZoneType as _ZoneType } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
-    async addActiveTrade(arg0: string, arg1: string, arg2: TradeDirection, arg3: number): Promise<bigint> {
+    async addZone(arg0: number, arg1: string, arg2: ZoneType): Promise<bigint> {
         if (this.processError) {
             try {
-                const result = await this.actor.addActiveTrade(arg0, arg1, to_candid_TradeDirection_n1(this._uploadFile, this._downloadFile, arg2), arg3);
+                const result = await this.actor.addZone(arg0, arg1, to_candid_ZoneType_n1(this._uploadFile, this._downloadFile, arg2));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.addActiveTrade(arg0, arg1, to_candid_TradeDirection_n1(this._uploadFile, this._downloadFile, arg2), arg3);
+            const result = await this.actor.addZone(arg0, arg1, to_candid_ZoneType_n1(this._uploadFile, this._downloadFile, arg2));
             return result;
         }
     }
-    async closeTrade(arg0: bigint, arg1: number): Promise<void> {
+    async closePaperTrade(arg0: bigint, arg1: number, arg2: boolean, arg3: string): Promise<boolean> {
         if (this.processError) {
             try {
-                const result = await this.actor.closeTrade(arg0, arg1);
+                const result = await this.actor.closePaperTrade(arg0, arg1, arg2, arg3);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.closeTrade(arg0, arg1);
+            const result = await this.actor.closePaperTrade(arg0, arg1, arg2, arg3);
             return result;
         }
     }
-    async getActiveTrades(): Promise<Array<ActiveTrade>> {
+    async deleteZone(arg0: bigint): Promise<boolean> {
         if (this.processError) {
             try {
-                const result = await this.actor.getActiveTrades();
+                const result = await this.actor.deleteZone(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteZone(arg0);
+            return result;
+        }
+    }
+    async getAllMarketCache(): Promise<Array<MarketCacheEntry>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAllMarketCache();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAllMarketCache();
+            return result;
+        }
+    }
+    async getAllTrades(): Promise<Array<PaperTradeState>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAllTrades();
                 return from_candid_vec_n3(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.getActiveTrades();
+            const result = await this.actor.getAllTrades();
             return from_candid_vec_n3(this._uploadFile, this._downloadFile, result);
         }
     }
-    async getClosedTrades(): Promise<Array<ClosedTrade>> {
+    async getClosedTrades(): Promise<Array<{
+        trade: PaperTradeState;
+        tradeId: bigint;
+    }>> {
         if (this.processError) {
             try {
                 const result = await this.actor.getClosedTrades();
-                return from_candid_vec_n8(this._uploadFile, this._downloadFile, result);
+                return from_candid_vec_n11(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getClosedTrades();
-            return from_candid_vec_n8(this._uploadFile, this._downloadFile, result);
+            return from_candid_vec_n11(this._uploadFile, this._downloadFile, result);
         }
     }
-    async getClosedTradesByModule(arg0: string): Promise<Array<ClosedTrade>> {
+    async getMarketCache(arg0: bigint): Promise<MarketCacheEntry | null> {
         if (this.processError) {
             try {
-                const result = await this.actor.getClosedTradesByModule(arg0);
-                return from_candid_vec_n8(this._uploadFile, this._downloadFile, result);
+                const result = await this.actor.getMarketCache(arg0);
+                return from_candid_opt_n13(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.getClosedTradesByModule(arg0);
-            return from_candid_vec_n8(this._uploadFile, this._downloadFile, result);
+            const result = await this.actor.getMarketCache(arg0);
+            return from_candid_opt_n13(this._uploadFile, this._downloadFile, result);
         }
     }
-    async getClosedTradesByResult(arg0: TradeResult): Promise<Array<ClosedTrade>> {
+    async getMarketCacheForSymbol(arg0: string): Promise<Array<MarketCacheEntry>> {
         if (this.processError) {
             try {
-                const result = await this.actor.getClosedTradesByResult(to_candid_TradeResult_n13(this._uploadFile, this._downloadFile, arg0));
-                return from_candid_vec_n8(this._uploadFile, this._downloadFile, result);
+                const result = await this.actor.getMarketCacheForSymbol(arg0);
+                return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.getClosedTradesByResult(to_candid_TradeResult_n13(this._uploadFile, this._downloadFile, arg0));
-            return from_candid_vec_n8(this._uploadFile, this._downloadFile, result);
+            const result = await this.actor.getMarketCacheForSymbol(arg0);
+            return result;
+        }
+    }
+    async getOpenTrades(): Promise<Array<{
+        trade: PaperTradeState;
+        tradeId: bigint;
+    }>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getOpenTrades();
+                return from_candid_vec_n11(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getOpenTrades();
+            return from_candid_vec_n11(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getTrade(arg0: bigint): Promise<PaperTradeState | null> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getTrade(arg0);
+                return from_candid_opt_n14(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getTrade(arg0);
+            return from_candid_opt_n14(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getTradesForSymbol(arg0: string): Promise<Array<PaperTradeState>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getTradesForSymbol(arg0);
+                return from_candid_vec_n3(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getTradesForSymbol(arg0);
+            return from_candid_vec_n3(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getZones(): Promise<Array<Zone>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getZones();
+                return from_candid_vec_n15(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getZones();
+            return from_candid_vec_n15(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async openPaperTrade(arg0: string, arg1: TradeSide, arg2: number, arg3: number, arg4: number, arg5: TradeStyle, arg6: string, arg7: string, arg8: string, arg9: string, arg10: string): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.openPaperTrade(arg0, to_candid_TradeSide_n20(this._uploadFile, this._downloadFile, arg1), arg2, arg3, arg4, to_candid_TradeStyle_n22(this._uploadFile, this._downloadFile, arg5), arg6, arg7, arg8, arg9, arg10);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.openPaperTrade(arg0, to_candid_TradeSide_n20(this._uploadFile, this._downloadFile, arg1), arg2, arg3, arg4, to_candid_TradeStyle_n22(this._uploadFile, this._downloadFile, arg5), arg6, arg7, arg8, arg9, arg10);
+            return result;
+        }
+    }
+    async storeMarketCache(arg0: string, arg1: string): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.storeMarketCache(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.storeMarketCache(arg0, arg1);
+            return result;
         }
     }
 }
-function from_candid_ActiveTrade_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _ActiveTrade): ActiveTrade {
-    return from_candid_record_n5(_uploadFile, _downloadFile, value);
+function from_candid_PaperTradeState_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _PaperTradeState): PaperTradeState {
+    return from_candid_variant_n5(_uploadFile, _downloadFile, value);
 }
-function from_candid_ClosedTrade_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _ClosedTrade): ClosedTrade {
-    return from_candid_record_n10(_uploadFile, _downloadFile, value);
+function from_candid_TradeSide_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _TradeSide): TradeSide {
+    return from_candid_variant_n8(_uploadFile, _downloadFile, value);
 }
-function from_candid_TradeDirection_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _TradeDirection): TradeDirection {
-    return from_candid_variant_n7(_uploadFile, _downloadFile, value);
+function from_candid_TradeStyle_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _TradeStyle): TradeStyle {
+    return from_candid_variant_n10(_uploadFile, _downloadFile, value);
 }
-function from_candid_TradeResult_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _TradeResult): TradeResult {
-    return from_candid_variant_n12(_uploadFile, _downloadFile, value);
+function from_candid_ZoneType_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _ZoneType): ZoneType {
+    return from_candid_variant_n19(_uploadFile, _downloadFile, value);
 }
-function from_candid_record_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    result: _TradeResult;
-    moduleName: string;
+function from_candid_Zone_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Zone): Zone {
+    return from_candid_record_n17(_uploadFile, _downloadFile, value);
+}
+function from_candid_opt_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_MarketCacheEntry]): MarketCacheEntry | null {
+    return value.length === 0 ? null : value[0];
+}
+function from_candid_opt_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_PaperTradeState]): PaperTradeState | null {
+    return value.length === 0 ? null : from_candid_PaperTradeState_n4(_uploadFile, _downloadFile, value[0]);
+}
+function from_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    trade: _PaperTradeState;
     tradeId: bigint;
-    symbol: string;
-    finalPnl: number;
 }): {
-    result: TradeResult;
-    moduleName: string;
+    trade: PaperTradeState;
     tradeId: bigint;
-    symbol: string;
-    finalPnl: number;
 } {
     return {
-        result: from_candid_TradeResult_n11(_uploadFile, _downloadFile, value.result),
-        moduleName: value.moduleName,
-        tradeId: value.tradeId,
-        symbol: value.symbol,
-        finalPnl: value.finalPnl
+        trade: from_candid_PaperTradeState_n4(_uploadFile, _downloadFile, value.trade),
+        tradeId: value.tradeId
     };
 }
-function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    direction: _TradeDirection;
-    moduleName: string;
-    tradeId: bigint;
-    entryPrice: number;
-    currentPnl: number;
-    symbol: string;
+function from_candid_record_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    zoneLabel: string;
+    zoneType: _ZoneType;
+    price: number;
 }): {
-    direction: TradeDirection;
-    moduleName: string;
-    tradeId: bigint;
-    entryPrice: number;
-    currentPnl: number;
-    symbol: string;
+    zoneLabel: string;
+    zoneType: ZoneType;
+    price: number;
 } {
     return {
-        direction: from_candid_TradeDirection_n6(_uploadFile, _downloadFile, value.direction),
-        moduleName: value.moduleName,
-        tradeId: value.tradeId,
+        zoneLabel: value.zoneLabel,
+        zoneType: from_candid_ZoneType_n18(_uploadFile, _downloadFile, value.zoneType),
+        price: value.price
+    };
+}
+function from_candid_record_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    behavioralChecklist: string;
+    positionManagementNotes: string;
+    side: _TradeSide;
+    setupDescription: string;
+    style: _TradeStyle;
+    target: number;
+    contextFilter: string;
+    stopLoss: number;
+    entryPrice: number;
+    riskManagementNotes: string;
+    symbol: string;
+    openedAt: _Time;
+}): {
+    behavioralChecklist: string;
+    positionManagementNotes: string;
+    side: TradeSide;
+    setupDescription: string;
+    style: TradeStyle;
+    target: number;
+    contextFilter: string;
+    stopLoss: number;
+    entryPrice: number;
+    riskManagementNotes: string;
+    symbol: string;
+    openedAt: Time;
+} {
+    return {
+        behavioralChecklist: value.behavioralChecklist,
+        positionManagementNotes: value.positionManagementNotes,
+        side: from_candid_TradeSide_n7(_uploadFile, _downloadFile, value.side),
+        setupDescription: value.setupDescription,
+        style: from_candid_TradeStyle_n9(_uploadFile, _downloadFile, value.style),
+        target: value.target,
+        contextFilter: value.contextFilter,
+        stopLoss: value.stopLoss,
         entryPrice: value.entryPrice,
-        currentPnl: value.currentPnl,
-        symbol: value.symbol
+        riskManagementNotes: value.riskManagementNotes,
+        symbol: value.symbol,
+        openedAt: value.openedAt
     };
 }
-function from_candid_variant_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    WIN: null;
+function from_candid_variant_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    scalping: null;
 } | {
-    LOSS: null;
-}): TradeResult {
-    return "WIN" in value ? TradeResult.WIN : "LOSS" in value ? TradeResult.LOSS : value;
-}
-function from_candid_variant_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    LONG: null;
+    dayTrade: null;
 } | {
-    SHORT: null;
-}): TradeDirection {
-    return "LONG" in value ? TradeDirection.LONG : "SHORT" in value ? TradeDirection.SHORT : value;
-}
-function from_candid_vec_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_ActiveTrade>): Array<ActiveTrade> {
-    return value.map((x)=>from_candid_ActiveTrade_n4(_uploadFile, _downloadFile, x));
-}
-function from_candid_vec_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_ClosedTrade>): Array<ClosedTrade> {
-    return value.map((x)=>from_candid_ClosedTrade_n9(_uploadFile, _downloadFile, x));
-}
-function to_candid_TradeDirection_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: TradeDirection): _TradeDirection {
-    return to_candid_variant_n2(_uploadFile, _downloadFile, value);
-}
-function to_candid_TradeResult_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: TradeResult): _TradeResult {
-    return to_candid_variant_n14(_uploadFile, _downloadFile, value);
-}
-function to_candid_variant_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: TradeResult): {
-    WIN: null;
+    positionTrade: null;
 } | {
-    LOSS: null;
+    swingTrade: null;
+}): TradeStyle {
+    return "scalping" in value ? TradeStyle.scalping : "dayTrade" in value ? TradeStyle.dayTrade : "positionTrade" in value ? TradeStyle.positionTrade : "swingTrade" in value ? TradeStyle.swingTrade : value;
+}
+function from_candid_variant_n19(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    support: null;
+} | {
+    resistance: null;
+}): ZoneType {
+    return "support" in value ? ZoneType.support : "resistance" in value ? ZoneType.resistance : value;
+}
+function from_candid_variant_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    closed: {
+        stoppedOut: boolean;
+        closedAt: _Time;
+        tradeNotes: string;
+        entryPrice: number;
+        exitPrice: number;
+        openedAt: _Time;
+    };
+} | {
+    open: {
+        behavioralChecklist: string;
+        positionManagementNotes: string;
+        side: _TradeSide;
+        setupDescription: string;
+        style: _TradeStyle;
+        target: number;
+        contextFilter: string;
+        stopLoss: number;
+        entryPrice: number;
+        riskManagementNotes: string;
+        symbol: string;
+        openedAt: _Time;
+    };
+}): {
+    __kind__: "closed";
+    closed: {
+        stoppedOut: boolean;
+        closedAt: Time;
+        tradeNotes: string;
+        entryPrice: number;
+        exitPrice: number;
+        openedAt: Time;
+    };
+} | {
+    __kind__: "open";
+    open: {
+        behavioralChecklist: string;
+        positionManagementNotes: string;
+        side: TradeSide;
+        setupDescription: string;
+        style: TradeStyle;
+        target: number;
+        contextFilter: string;
+        stopLoss: number;
+        entryPrice: number;
+        riskManagementNotes: string;
+        symbol: string;
+        openedAt: Time;
+    };
 } {
-    return value == TradeResult.WIN ? {
-        WIN: null
-    } : value == TradeResult.LOSS ? {
-        LOSS: null
+    return "closed" in value ? {
+        __kind__: "closed",
+        closed: value.closed
+    } : "open" in value ? {
+        __kind__: "open",
+        open: from_candid_record_n6(_uploadFile, _downloadFile, value.open)
     } : value;
 }
-function to_candid_variant_n2(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: TradeDirection): {
-    LONG: null;
+function from_candid_variant_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    long: null;
 } | {
-    SHORT: null;
+    short: null;
+}): TradeSide {
+    return "long" in value ? TradeSide.long : "short" in value ? TradeSide.short : value;
+}
+function from_candid_vec_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<{
+    trade: _PaperTradeState;
+    tradeId: bigint;
+}>): Array<{
+    trade: PaperTradeState;
+    tradeId: bigint;
+}> {
+    return value.map((x)=>from_candid_record_n12(_uploadFile, _downloadFile, x));
+}
+function from_candid_vec_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Zone>): Array<Zone> {
+    return value.map((x)=>from_candid_Zone_n16(_uploadFile, _downloadFile, x));
+}
+function from_candid_vec_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_PaperTradeState>): Array<PaperTradeState> {
+    return value.map((x)=>from_candid_PaperTradeState_n4(_uploadFile, _downloadFile, x));
+}
+function to_candid_TradeSide_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: TradeSide): _TradeSide {
+    return to_candid_variant_n21(_uploadFile, _downloadFile, value);
+}
+function to_candid_TradeStyle_n22(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: TradeStyle): _TradeStyle {
+    return to_candid_variant_n23(_uploadFile, _downloadFile, value);
+}
+function to_candid_ZoneType_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: ZoneType): _ZoneType {
+    return to_candid_variant_n2(_uploadFile, _downloadFile, value);
+}
+function to_candid_variant_n2(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: ZoneType): {
+    support: null;
+} | {
+    resistance: null;
 } {
-    return value == TradeDirection.LONG ? {
-        LONG: null
-    } : value == TradeDirection.SHORT ? {
-        SHORT: null
+    return value == ZoneType.support ? {
+        support: null
+    } : value == ZoneType.resistance ? {
+        resistance: null
+    } : value;
+}
+function to_candid_variant_n21(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: TradeSide): {
+    long: null;
+} | {
+    short: null;
+} {
+    return value == TradeSide.long ? {
+        long_: null
+    } : value == TradeSide.short ? {
+        short_: null
+    } : value;
+}
+function to_candid_variant_n23(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: TradeStyle): {
+    scalping: null;
+} | {
+    dayTrade: null;
+} | {
+    positionTrade: null;
+} | {
+    swingTrade: null;
+} {
+    return value == TradeStyle.scalping ? {
+        scalping: null
+    } : value == TradeStyle.dayTrade ? {
+        dayTrade: null
+    } : value == TradeStyle.positionTrade ? {
+        positionTrade: null
+    } : value == TradeStyle.swingTrade ? {
+        swingTrade: null
     } : value;
 }
 export interface CreateActorOptions {

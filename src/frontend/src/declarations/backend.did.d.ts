@@ -10,35 +10,129 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
-export interface ActiveTrade {
-  'direction' : TradeDirection,
-  'moduleName' : string,
-  'tradeId' : bigint,
-  'entryPrice' : number,
-  'currentPnl' : number,
+export interface MarketCacheEntry {
+  'data' : string,
+  'timestamp' : Time,
   'symbol' : string,
 }
-export interface ClosedTrade {
-  'result' : TradeResult,
-  'moduleName' : string,
-  'tradeId' : bigint,
-  'symbol' : string,
-  'finalPnl' : number,
+export type PaperTradeState = {
+    'closed' : {
+      'stoppedOut' : boolean,
+      'closedAt' : Time,
+      'tradeNotes' : string,
+      'entryPrice' : number,
+      'exitPrice' : number,
+      'openedAt' : Time,
+    }
+  } |
+  {
+    'open' : {
+      'behavioralChecklist' : string,
+      'positionManagementNotes' : string,
+      'side' : TradeSide,
+      'setupDescription' : string,
+      'style' : TradeStyle,
+      'target' : number,
+      'contextFilter' : string,
+      'stopLoss' : number,
+      'entryPrice' : number,
+      'riskManagementNotes' : string,
+      'symbol' : string,
+      'openedAt' : Time,
+    }
+  };
+export type Time = bigint;
+export type TradeSide = { 'long' : null } |
+  { 'short' : null };
+export type TradeStyle = { 'scalping' : null } |
+  { 'dayTrade' : null } |
+  { 'positionTrade' : null } |
+  { 'swingTrade' : null };
+export interface Zone {
+  'zoneLabel' : string,
+  'zoneType' : ZoneType,
+  'price' : number,
 }
-export type TradeDirection = { 'LONG' : null } |
-  { 'SHORT' : null };
-export type TradeResult = { 'WIN' : null } |
-  { 'LOSS' : null };
+export type ZoneType = { 'support' : null } |
+  { 'resistance' : null };
 export interface _SERVICE {
-  'addActiveTrade' : ActorMethod<
-    [string, string, TradeDirection, number],
+  /**
+   * / Add a new support/resistance zone
+   */
+  'addZone' : ActorMethod<[number, string, ZoneType], bigint>,
+  /**
+   * / Close a paper trade
+   */
+  'closePaperTrade' : ActorMethod<[bigint, number, boolean, string], boolean>,
+  /**
+   * / Delete a zone by id
+   */
+  'deleteZone' : ActorMethod<[bigint], boolean>,
+  /**
+   * / Get all market cache data
+   */
+  'getAllMarketCache' : ActorMethod<[], Array<MarketCacheEntry>>,
+  /**
+   * / Get all paper trades
+   */
+  'getAllTrades' : ActorMethod<[], Array<PaperTradeState>>,
+  /**
+   * / Get all closed trades
+   */
+  'getClosedTrades' : ActorMethod<
+    [],
+    Array<{ 'trade' : PaperTradeState, 'tradeId' : bigint }>
+  >,
+  /**
+   * / Get market cache data by id
+   */
+  'getMarketCache' : ActorMethod<[bigint], [] | [MarketCacheEntry]>,
+  /**
+   * / Get all market cache data for a symbol
+   */
+  'getMarketCacheForSymbol' : ActorMethod<[string], Array<MarketCacheEntry>>,
+  /**
+   * / Get all open trades
+   */
+  'getOpenTrades' : ActorMethod<
+    [],
+    Array<{ 'trade' : PaperTradeState, 'tradeId' : bigint }>
+  >,
+  /**
+   * / Get trade by id
+   */
+  'getTrade' : ActorMethod<[bigint], [] | [PaperTradeState]>,
+  /**
+   * / Get trades for a symbol
+   */
+  'getTradesForSymbol' : ActorMethod<[string], Array<PaperTradeState>>,
+  /**
+   * / Get all zones
+   */
+  'getZones' : ActorMethod<[], Array<Zone>>,
+  /**
+   * / Open a new paper trade
+   */
+  'openPaperTrade' : ActorMethod<
+    [
+      string,
+      TradeSide,
+      number,
+      number,
+      number,
+      TradeStyle,
+      string,
+      string,
+      string,
+      string,
+      string,
+    ],
     bigint
   >,
-  'closeTrade' : ActorMethod<[bigint, number], undefined>,
-  'getActiveTrades' : ActorMethod<[], Array<ActiveTrade>>,
-  'getClosedTrades' : ActorMethod<[], Array<ClosedTrade>>,
-  'getClosedTradesByModule' : ActorMethod<[string], Array<ClosedTrade>>,
-  'getClosedTradesByResult' : ActorMethod<[TradeResult], Array<ClosedTrade>>,
+  /**
+   * / Store market data cache entry
+   */
+  'storeMarketCache' : ActorMethod<[string, string], bigint>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];
